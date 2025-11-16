@@ -32,6 +32,10 @@ static bool g_flick_enabled = true;
 // Configurable thresholds (can be modified at runtime)
 static int16_t g_velocity_threshold = FLICK_VELOCITY_THRESHOLD;
 static int16_t g_distance_threshold = FLICK_DISTANCE_THRESHOLD;
+static uint16_t g_time_window_ms = FLICK_TIME_WINDOW_MS;
+static uint16_t g_cooldown_ms = FLICK_COOLDOWN_MS;
+static float g_vertical_tolerance_ratio = FLICK_VERTICAL_TOLERANCE_RATIO;
+static int16_t g_decay_threshold = FLICK_VELOCITY_DECAY_THRESHOLD;
 
 // ============================================================================
 // Private Helper Functions
@@ -85,7 +89,7 @@ static bool validate_flick_gesture(void) {
     // We want primarily horizontal movement
     if (abs_x > 0) {
         float vertical_ratio = (float)abs_y / (float)abs_x;
-        if (vertical_ratio > FLICK_VERTICAL_TOLERANCE_RATIO) {
+        if (vertical_ratio > g_vertical_tolerance_ratio) {
             return false;  // Too much vertical movement, not a horizontal flick
         }
     }
@@ -130,7 +134,7 @@ static bool has_velocity_decayed(int16_t velocity_x) {
     int16_t abs_velocity = velocity_x < 0 ? -velocity_x : velocity_x;
     
     // Velocity has decayed if it's below the decay threshold
-    if (abs_velocity < FLICK_VELOCITY_DECAY_THRESHOLD) {
+    if (abs_velocity < g_decay_threshold) {
         return true;
     }
     
@@ -139,7 +143,7 @@ static bool has_velocity_decayed(int16_t velocity_x) {
     if (g_flick_detector.last_velocity_x != 0) {
         // Check if signs are different (direction reversed)
         bool sign_changed = (g_flick_detector.last_velocity_x > 0) != (velocity_x > 0);
-        if (sign_changed && abs_velocity > FLICK_VELOCITY_DECAY_THRESHOLD) {
+        if (sign_changed && abs_velocity > g_decay_threshold) {
             return true;  // Strong reversal indicates end of gesture
         }
     }
@@ -233,7 +237,7 @@ static void update_idle_state(int16_t velocity_x, uint32_t current_time) {
 static void update_detecting_state(int16_t velocity_x, int16_t velocity_y, uint32_t current_time) {
     // Check 1: Has the time window expired?
     uint32_t elapsed_time = current_time - g_flick_detector.gesture_start_time;
-    if (elapsed_time > FLICK_TIME_WINDOW_MS) {
+    if (elapsed_time > g_time_window_ms) {
         // Timeout - check if we have a valid gesture before giving up
         if (validate_flick_gesture()) {
             // We have enough movement, trigger the flick
@@ -325,7 +329,7 @@ static void update_cooldown_state(uint32_t current_time) {
     // Check if cooldown period has elapsed
     uint32_t elapsed_time = current_time - g_flick_detector.cooldown_start_time;
     
-    if (elapsed_time >= FLICK_COOLDOWN_MS) {
+    if (elapsed_time >= g_cooldown_ms) {
         // Cooldown complete, return to idle state
         transition_state(FLICK_STATE_IDLE);
     }
@@ -444,9 +448,41 @@ void flick_detection_set_velocity_threshold(int16_t threshold) {
     }
 }
 
+int16_t flick_detection_get_velocity_threshold(void) {
+    return g_velocity_threshold;
+}
+
 void flick_detection_set_distance_threshold(int16_t threshold) {
     if (threshold > 0) {
         g_distance_threshold = threshold;
+    }
+}
+
+int16_t flick_detection_get_distance_threshold(void) {
+    return g_distance_threshold;
+}
+
+void flick_detection_set_time_window(uint16_t time_ms) {
+    if (time_ms > 0) {
+        g_time_window_ms = time_ms;
+    }
+}
+
+void flick_detection_set_cooldown(uint16_t cooldown_ms) {
+    if (cooldown_ms > 0) {
+        g_cooldown_ms = cooldown_ms;
+    }
+}
+
+void flick_detection_set_vertical_tolerance(float ratio) {
+    if (ratio >= 0.0f && ratio <= 1.0f) {
+        g_vertical_tolerance_ratio = ratio;
+    }
+}
+
+void flick_detection_set_decay_threshold(int16_t threshold) {
+    if (threshold > 0) {
+        g_decay_threshold = threshold;
     }
 }
 
