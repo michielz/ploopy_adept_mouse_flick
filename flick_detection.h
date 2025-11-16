@@ -184,11 +184,53 @@ bool flick_detection_is_enabled(void);
 void flick_detection_set_velocity_threshold(int16_t threshold);
 
 /**
+ * Get current velocity threshold
+ * 
+ * @return Current velocity threshold value
+ */
+int16_t flick_detection_get_velocity_threshold(void);
+
+/**
  * Set custom distance threshold
  * 
  * @param threshold New distance threshold value
  */
 void flick_detection_set_distance_threshold(int16_t threshold);
+
+/**
+ * Get current distance threshold
+ * 
+ * @return Current distance threshold value
+ */
+int16_t flick_detection_get_distance_threshold(void);
+
+/**
+ * Set custom time window for flick detection
+ * 
+ * @param time_ms New time window in milliseconds
+ */
+void flick_detection_set_time_window(uint16_t time_ms);
+
+/**
+ * Set custom cooldown period
+ * 
+ * @param cooldown_ms New cooldown period in milliseconds
+ */
+void flick_detection_set_cooldown(uint16_t cooldown_ms);
+
+/**
+ * Set custom vertical tolerance ratio
+ * 
+ * @param ratio New vertical tolerance ratio (0.0 to 1.0)
+ */
+void flick_detection_set_vertical_tolerance(float ratio);
+
+/**
+ * Set custom velocity decay threshold
+ * 
+ * @param threshold New decay threshold value
+ */
+void flick_detection_set_decay_threshold(int16_t threshold);
 
 // ============================================================================
 // Debug Functions (optional, for development)
